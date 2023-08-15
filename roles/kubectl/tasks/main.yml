@@ -1,0 +1,18 @@
+---
+# tasks file for roles/kubectl
+
+- name: Download Kubectl
+  uri:
+    url: 'https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl' # required. HTTP or HTTPS URL in the form (http|https)://host.domain[:port]/path
+    method: GET # not required. The HTTP method of the request or response. In more recent versions we do not restrict the method at the module level anymore but it still must be a valid method accepted by the service handling the request.
+    follow_redirects: safe # not required. choices: all;no;none;safe;urllib2;yes. Whether or not the URI module should follow redirects. C(all) will follow all redirects. C(safe) will follow only "safe" redirects, where "safe" means that the client is only doing a GET or HEAD on the URI to which it is being redirected. C(none) will not follow any redirects. Note that C(yes) and C(no) choices are accepted for backwards compatibility, where C(yes) is the equivalent of C(all) and C(no) is the equivalent of C(safe). C(yes) and C(no) are deprecated and will be removed in some future version of Ansible.
+  register: kubectl
+  until: kubectl is succeeded
+  retries: 5
+  delay: 10
+
+- name: Copy Kubectl to /usr/local/bin
+  copy:
+    src: '{{ kubectl.content }}'
+    dest: '/usr/local/bin/kubectl'
+    owner: root
